@@ -154,8 +154,6 @@ object md_streaming_mongoDB
     import sqlContext.implicits._
     sparkContext.setLogLevel("ERROR")
     
-
-
        // Start mongoDB collection stuff
     val rdd = MongoSpark.load(sparkContext)
     val MARKETDATAMONGODBSPEED = rdd.toDF
@@ -197,15 +195,9 @@ object md_streaming_mongoDB
         val sc = spark.sparkContext
         import spark.implicits._
         var operation = new operationStruct(op_type, op_time)
-        var usedFunctions = new UsedFunctions
-        var a = usedFunctions.randomised(10,rows+totalPrices.toInt)
-        var b = usedFunctions.randomised(20,rows+totalPrices.toInt)
-        var c = usedFunctions.randomised(30,rows+totalPrices.toInt)
-        var z = Array(a,b,c)
-        var otherDetails = new tradeStruct(tickerType, tickerClass, tickerStatus, z)
 
         // Convert RDD[String] to RDD[case class] to DataFrame
-        val RDDString = pricesRDD.map { case (_, value) => value.split(',') }.map(p => priceDocument(priceStruct(p(0).toString,p(1).toString,p(2).toString,p(3).toDouble, currency), operation, otherDetails))
+        val RDDString = pricesRDD.map { case (_, value) => value.split(',') }.map(p => priceDocument(priceStruct(p(0).toString,p(1).toString,p(2).toString,p(3).toDouble, currency), operation))
         val df = spark.createDataFrame(RDDString)
         //df.printSchema
         var document = df.filter('priceInfo.getItem("price") > 90.0)
@@ -237,7 +229,7 @@ object md_streaming_mongoDB
 case class operationStruct (op_type: Int, op_time: String)
 case class tradeStruct (tickerType: String, tickerClass: String, tickerStatus: String, tickerQuotes: Array[Double])
 case class priceStruct(key: String, ticker: String, timeissued: String, price: Double, currency: String)
-case class priceDocument(priceInfo: priceStruct, operation: operationStruct, otherDetails: tradeStruct)
+case class priceDocument(priceInfo: priceStruct, operation: operationStruct)
 
 class UsedFunctions {
   import scala.util.Random
